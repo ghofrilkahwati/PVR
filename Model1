@@ -1,0 +1,73 @@
+
+
+inputTable = inputData;
+predictorNames = {'SEX', 'AGELACHIRURGIE', 'CHIRURGIEPRCEDANTE', 'DURESYMPTOMESJOURS', 'MACULA', 'DRTOTAL', 'TROUMACULAIRE', 'DECHIRURES', 'LATTICEQUADRANTS', 'DECHIRUREGANTE', 'TO', 'UVEITE', 'HBVITRE', 'PVRPREEXISTANT', 'PHAKEPSEUDOPHAKE'};
+predicteurs = inputTable(:, predictorNames);
+output = inputTable.PVR;
+isCategoricalPredictor = [true, false, true, false, true, true, true, false, false, true, false, true, true, true, true];
+inputTable;
+
+
+% Train a classifier
+% % This code specifies all the classifier options and trains the classifier.
+% clfSVM = fitcsvm(...
+%     predicteurs, ...
+%     output, ...
+%     'KernelFunction', 'linear', ...
+%     'PolynomialOrder', [], ...
+%     'KernelScale', 'auto', ...
+%     'BoxConstraint', 1, ...
+%     'Standardize', true, ...
+%     'ClassNames', categorical({'NON'; 'OUI'}));
+% 
+% 
+% 
+% 
+% % Perform cross-validation
+% partitionedModel = crossval(clfSVM, 'KFold', 5);
+% 
+% % Compute validation predictions
+% pred = kfoldPredict(partitionedModel);
+% 
+% confusionchart(response,pred)
+% 
+% 
+% 
+X = predicteurs
+Y = output
+
+rng('default'); 
+% Divisier les données en kfold segments
+fold=cvpartition(Y,'kfold',5);
+Afold=zeros(5,1); confmat=0;
+
+for i=1:5
+    
+  trainInt=fold.training(i); 
+  testInt=fold.test(i);
+%   
+  Xtrain=X(trainInt,:);
+  Ytrain=Y(trainInt,:);
+%   
+  Xtest=X(testInt,:) ;
+  Ytest=Y(testInt,:);
+%   % Entrainement du model 
+ clfSVM = fitcsvm(...
+    Xtrain, ...
+    Ytrain, ...
+    'KernelFunction', 'linear', ...
+    'PolynomialOrder', [], ...
+    'KernelScale', 'auto', ...
+    'BoxConstraint', 1, ...
+    'Standardize', true, ...
+    'ClassNames', categorical({'NON'; 'OUI'}));
+
+%   % Classification 
+   Pred= predict(clfSVM,Xtest);
+%   % Matrice de confusion
+   con=confusionmat(Ytest,Pred);
+%   % Stockage itérative
+   confmat=confmat+con; 
+end
+   
+confusionchart(confmat)
